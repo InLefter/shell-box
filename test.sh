@@ -7,14 +7,14 @@
 }
 
 {
-#         cat << EOF
-# │obs.service.run.tar.gz:    │[2021/09/03 12:44:22] info start to begin  │
-# │obs.service.run.tar.2021.03.04.19.gz:  │[2021/09/03 12:44:22] info start to begin test for example.info start to begin test for example.info start to begin test for example.  │
-# EOF
-    cat << EOF
-│1      │john   │foo bar        │
-│12345678       │someone_with_a_long_name       │blub blib blab bam boom        │
+        cat << EOF
+│obs.service.run.tar.gz:    │[2021/09/03 12:44:22] info start to begin  │
+│obs.service.run.tar.2021.03.04.19.gz:  │[2021/09/03 12:44:22] info start to begin test for example.info start to begin test for example.info start to begin test for example.  │
 EOF
+#     cat << EOF
+# │1      │john   │foo bar        │
+# │12345678       │someone_with_a_long_name       │blub blib blab bam boom        │
+# EOF
 } | awk -F\│ -v COL=$COLUMNS '{
     FSL=length(FS)*(NF-1);
     NFL=NF;
@@ -37,8 +37,8 @@ EOF
         }
         # printf "colL[%d], %d, \n", j, colL[j];
     }
-    printf "FS: %s\n", FS;
-    printf "col_len_aval: %d\n", col_len_aval;
+    # printf "FS: %s\n", FS;
+    # printf "col_len_aval: %d\n", col_len_aval;
 
     # sort for analysis which col will be wrapped.
     n=asorti(colL, sortedcolL);
@@ -49,18 +49,19 @@ EOF
         if (j < n) {
             col_average_len = int(col_len_aval / (n - j));
         }
-        printf "%d:%d,",sortedcolL[j],colL[sortedcolL[j]];
+        # printf "%d:%d,",sortedcolL[j],colL[sortedcolL[j]];
     }
     # printf "\n";
     
-    printf "fs length: %d, cal: %d, %d,%d,%d\n", FSL, col_average_len,COL,FSL,NFL;
+    # printf "fs length: %d, cal: %d, %d,%d,%d\n", FSL, col_average_len,COL,FSL,NFL;
     for(i in I) {
         printf "%d->\n ",i;
+        split("", line_wrap);
         for(j in J) {
             fmt=get_wrap_format(n, j);
-            printf "%d\t%d\t",j,LEND[i,j];
-            printf "colL %d, %s\n", colL[sortedcolL[j]], fmt;
-            print fwrap(DATA[i,j], colL[sortedcolL[j]], fmt);
+            # printf "%d\t%d\t",j,LEND[i,j];
+            # printf "colL %d, %s\n", colL[sortedcolL[j]], fmt;
+            fwrap(DATA[i,j], colL[sortedcolL[j]]);
         }
     }
 }
@@ -90,18 +91,22 @@ function wrap(str, width, format) {
     }
     return newstr;
 }
-function fwrap(str, width, format) {
+function fwrap(str, width) {
+    idx=1;
     if(length(str) > width) {
         r="";
         cmd = "printf %s \"" str "\" | fold -s -w " width;
         while ( (cmd | getline line) > 0 ) {
-            line=sprintf(format, line);
+            # line=sprintf(format, line);
+            line_wrap[idx++]=line;
+            printf "i: %d, j: %d, idx: %d, line: %s\n", i, j, idx, line
             r=r?r"\n"line:line;
         }
         close(cmd);
-        return r;
+        # return r;
     } else {
-        return sprintf(format, str);
+        line_wrap[idx]=str;
+        printf "i: %d, j: %d, idx: %d, line: %s\n", i, j, idx, str
     }
 }
 function ltrim(s) { sub(/^[ \t\r\n]+/, "", s); return s }

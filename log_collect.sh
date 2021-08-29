@@ -11,8 +11,6 @@
     COLUMNS=$(stty size 2> /dev/null | awk '{print $2}')
 }
 
-echo $COLUMNS
-
 _format_table_char_top_left="┌"
 _format_table_char_horizontal="─"
 _format_table_char_vertical="│"

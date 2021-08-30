@@ -25,16 +25,17 @@ _format_table_char_vertical_horizontal="┼"
 
 
 function _format_table_prettify_lines() {
-    cat - | sed -e "s@^@${_format_table_char_vertical}@;s@\$@	@;s@	@	${_format_table_char_vertical}@g" | tee tpl.log
+    cat - | sed -e "s@^@${_format_table_char_vertical}@;s@\$@	@;s@	@	${_format_table_char_vertical}@g"
 }
 
-function _format_table_fix_border_lines() {
-    echo ${1}
-    for i in "$1"
-    do
-        echo $i
+function _format_table_fill_border_lines() {
+    while read -r line; do
+        if [[ "$line" == ${_format_table_char_top_left}* || "$line" == ${_format_table_char_vertical_horizontal_left}* || "$line" == ${_format_table_char_bottom_left}* ]]; then
+            echo "${line// /${_format_table_char_horizontal}}"
+        else
+            echo "$line"
+        fi
     done
-    cat - | tee zz.log | sed -e "1s@ @${_format_table_char_horizontal}@g;3s@ @${_format_table_char_horizontal}@g;\$s@ @${_format_table_char_horizontal}@g;"
 }
 
 function _format_table_awk_wrap() {
@@ -163,12 +164,10 @@ function trim(s)  { return rtrim(ltrim(s)); }
 }
 
 
-
 function format_table() {
     local cols="${1}"
     local header_cols=$(echo "${2}" | sed "s/,/ /g")
     local input="$(cat)"
-    border_line=()
     local total_lines=$(echo "${input}" | wc -l)
     {
         echo -n "${_format_table_char_top_left}"
@@ -199,7 +198,6 @@ function format_table() {
                     echo -ne "\t${_format_table_char_vertical_horizontal}"
                 done
                 echo -e "\t${_format_table_char_vertical_horizontal_right}"
-                border_line+=("${last_line_row}")
             fi
             ((idx++))
         done <<< "$input"
@@ -210,9 +208,8 @@ function format_table() {
         done
         echo -e "\t${_format_table_char_bottom_right}"
         border_line+=("${last_line_row}")
-    } | tee ccc.log | column -t -s $'\t' | _format_table_fix_border_lines "${border_line}"
+    } | column -t -s $'\t' | _format_table_fill_border_lines
 
-    echo ${border_line[@]}
 }
 
 case $- in
